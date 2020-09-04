@@ -20,6 +20,10 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         rig = GetComponent<Rigidbody2D> ();
+
+                    Vector3 wrld = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0.0f, 0.0f));
+
+        Debug.Log(wrld.x);
     }
 
     public void StopMoving(){
@@ -47,10 +51,10 @@ public class PlayerController : MonoBehaviour
             //Teleport to other side of screen if needed
             Vector3 wrld = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0.0f, 0.0f));
 
-            if(transform.position.x > wrld.x && (Input.acceleration.x > 0)){
-                transform.position = new Vector3(transform.position.x * -1, transform.position.y, transform.position.z);
-            } else if(transform.position.x < -(wrld.x) && (Input.acceleration.x < 0)){
-                transform.position = new Vector3(transform.position.x * -1, transform.position.y, transform.position.z);
+            if(transform.position.x > wrld.x){
+                transform.position = new Vector3(-(wrld.x), transform.position.y, transform.position.z);
+            } else if(transform.position.x < -(wrld.x)){
+                transform.position = new Vector3(wrld.x , transform.position.y, transform.position.z);
             }
 
             //Shooting
@@ -60,7 +64,7 @@ public class PlayerController : MonoBehaviour
                 Physics2D.IgnoreCollision(instance.GetComponent<Collider2D>(),  GetComponent<Collider2D>());
             }
         } else {
-            if(true && !dead){
+            if(Input.touchCount > 0 && !dead){
                 moveAllowed = true;
                 rig.gravityScale = 1f;
             }else if(dead){

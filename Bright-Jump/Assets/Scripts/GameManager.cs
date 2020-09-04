@@ -17,6 +17,6 @@ public class GameManager : MonoBehaviour
 
     public void EndGame(Vector3 EndPosition){
         prefabEndScene.transform.position = new Vector3(EndPosition.x, EndPosition.y, 5f);
-        prefabEndScene.transform.Find("ScoreText").GetComponent<Text>().text = coinsCollected.ToString();
+        prefabEndScene.transform.Find("ScoreText").GetComponent<Text>().text = "Score: " + coinsCollected.ToString();
     }
 }
