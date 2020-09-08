@@ -27,49 +27,54 @@ public class PlayerController : MonoBehaviour
     }
 
     public void StopMoving(){
-        moveAllowed = false;
         dead = true;
+        moveAllowed = false;
+        Die();
     }
 
-    private void FixedUpdate() 
-    {
+    private void Update() {
         if (moveAllowed)
         {
-            // Inverse facing if needed
-            if(Input.acceleration.x < 0 && !facingLeft){
-                Inverse();
-                facingLeft = true;
-            } else if(Input.acceleration.x > 0 && facingLeft){
-                Inverse();
-                facingLeft = false;
-            }
-
-            // Moving
-            dirX = Input.acceleration.x * moveSpeedModifier;
-		    rig.velocity = new Vector2 (rig.velocity.x + dirX, rig.velocity.y);
-
-            //Teleport to other side of screen if needed
-            Vector3 wrld = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0.0f, 0.0f));
-
-            if(transform.position.x > wrld.x){
-                transform.position = new Vector3(-(wrld.x), transform.position.y, transform.position.z);
-            } else if(transform.position.x < -(wrld.x)){
-                transform.position = new Vector3(wrld.x , transform.position.y, transform.position.z);
-            }
-
             //Shooting
             if(Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began){
                 GameObject instance = Instantiate(prefabBullet, shootPoint.position, prefabBullet.transform.rotation) as GameObject;
                 instance.GetComponent<Rigidbody2D>().AddForce(new Vector2(0, shootForce));
                 Physics2D.IgnoreCollision(instance.GetComponent<Collider2D>(),  GetComponent<Collider2D>());
             }
-        } else {
-            if(Input.touchCount > 0 && !dead){
-                moveAllowed = true;
-                rig.gravityScale = 1f;
-            }else if(dead){
-                Die();
-                dead = false; // we only need to die once
+        }
+    }
+
+    private void FixedUpdate() 
+    {
+        if(!dead){
+            if (moveAllowed)
+            {
+                // Inverse facing if needed
+                if(Input.acceleration.x < 0 && !facingLeft){
+                    Inverse();
+                    facingLeft = true;
+                } else if(Input.acceleration.x > 0 && facingLeft){
+                    Inverse();
+                    facingLeft = false;
+                }
+
+                // Moving
+                dirX = Input.acceleration.x * moveSpeedModifier;
+                rig.velocity = new Vector2 (rig.velocity.x + dirX, rig.velocity.y);
+
+                //Teleport to other side of screen if needed
+                Vector3 wrld = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0.0f, 0.0f));
+
+                if(transform.position.x > wrld.x){
+                    transform.position = new Vector3(-(wrld.x), transform.position.y, transform.position.z);
+                } else if(transform.position.x < -(wrld.x)){
+                    transform.position = new Vector3(wrld.x , transform.position.y, transform.position.z);
+                }
+            } else {
+                if(Input.touchCount > 0 ){
+                    moveAllowed = true;
+                    rig.gravityScale = 1f;
+                }
             }
         }
     }
