@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 
 public class User {
-    public string username;
+    public string name;
     public long score;
 
     public User() {
     }
 
-    public User(string username, long score) {
-        this.username = username;
+    public User(string name, long score) {
+        this.name = name;
         this.score = score;
     }
 }

@@ -3,13 +3,19 @@ using System.Collections.Generic;
 using Firebase;
 using Firebase.Database;
 using Firebase.Unity.Editor;
+using System.Threading.Tasks;
+using UnityEngine;
 
 public class LeaderBoard
 {
-    private int maxScores = 10;
+    private int maxScores = 5;
 
-    public void AddScoreToLeaders(string name, long score, DatabaseReference dbReference) {
-        dbReference.RunTransaction(mutableData => {
+    public bool writingHighscores = false;
+
+    public void AddScoreToLeaders(string uid, string name, long score, DatabaseReference dbReference) {
+        writingHighscores = true;
+
+        dbReference.Child("highscores").RunTransaction(mutableData => {
             List<object> highscores = mutableData.Value as List<object>;
 
             if (highscores == null) {
@@ -26,8 +32,8 @@ public class LeaderBoard
                     }
                 }
                 if (minScore > score) {
-                // The new score is lower than the existing 5 scores, abort.
-                return TransactionResult.Abort();
+                    // The new score is lower than the existing 5 scores, abort.
+                    return TransactionResult.Abort();
                 }
  
                 // Remove the lowest score.
@@ -38,9 +44,31 @@ public class LeaderBoard
             Dictionary<string, object> newScoreMap = new Dictionary<string, object>();
             newScoreMap["score"] = score;
             newScoreMap["name"] = name;
+            newScoreMap["uid"] = uid;
             highscores.Add(newScoreMap);
             mutableData.Value = highscores;
             return TransactionResult.Success(mutableData);
+        }).ContinueWith(task => {
+            if(task.IsCompleted){
+                writingHighscores = false;
+            } else if(task.IsFaulted) {
+                //
+                writingHighscores = false;
+            }
         });
+    }
+
+    public async Task<DataSnapshot> GetScores(DatabaseReference databaseReference){
+        var dataSnapshot = await databaseReference.Child("highscores").GetValueAsync();
+        Debug.Log("Done with retrieving highscores");
+        if(!dataSnapshot.Exists){
+            return null;
+        }
+
+        return dataSnapshot;
+    }
+
+    public int MaxScores {
+        get { return maxScores; }
     }
 }

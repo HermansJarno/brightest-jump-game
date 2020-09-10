@@ -12,19 +12,24 @@ public class PlayerDataManager : MonoBehaviour
     private PlayerData _playerData;
 
     public PlayerData PlayerData => _playerData;
-    public int Name => _playerData.name;
-    public int Score => _playerData.score;
+    public string Name => _playerData.name;
+    public long Score => _playerData.score;
 
-    public PlayerSaveManager playerSaveManager = new PlayerSaveManager();
+    private PlayerSaveManager playerSaveManager;
+
+    public GameObject afterAuthUI;
+    private string dbUrl = "https://brightjump-brightest.firebaseio.com";
 
     private Coroutine _coroutine;
 
-    private string dbUrl = "https://brightjump-brightest.firebaseio.com";
-    DatabaseReference dbRoot;
+    private bool initialLoad = true;
+
+    DatabaseReference dbRoot;    
 
     private void Start()
     {
         FirebaseApp.DefaultInstance.SetEditorDatabaseUrl(dbUrl);
+        playerSaveManager = new PlayerSaveManager(dbUrl);
 
         // Get the root reference location of the database.
         dbRoot = FirebaseDatabase.DefaultInstance.RootReference;
@@ -32,20 +37,29 @@ public class PlayerDataManager : MonoBehaviour
         if(_coroutine == null){
             _coroutine = StartCoroutine(LoadPlayer());
         }
-        DontDestroyOnLoad(gameObject);
+        DontDestroyOnLoad(this.gameObject);
     }
 
     public void UpdatePlayer(PlayerData playerData){
-        if(!playerData.Equals(_playerData)){
-            if(playerData.score > _playerData.score){
-                playerSaveManager.WriteScore(PlayerPrefs.GetString("uid"), _playerData.score, dbRoot);
+        if(!playerData.Equals(_playerData) && !initialLoad){
+            if(playerData.score > _playerData.score && playerData.name != _playerData.name){
+                playerSaveManager.writeOrUpdateUser(PlayerPrefs.GetString("uid"), playerData.name, playerData.score, dbRoot);
             }
-            _playerData = playerData;
+            else if(playerData.score > _playerData.score){
+                playerSaveManager.WriteScore(PlayerPrefs.GetString("uid"), playerData.score, dbRoot);
+            }
+            else if(playerData.name != _playerData.name){
+                playerSaveManager.WriteName(PlayerPrefs.GetString("uid"), playerData.name, dbRoot);
+            }
         }
-    }
 
-    public long GetScorePlayer(){
-        return playerSaveManager.GetScore(PlayerPrefs.GetString("uid"), dbRoot);
+        _playerData = playerData;
+
+        if(afterAuthUI != null){
+            afterAuthUI.SetActive(true);
+            if(playerData.name != "") afterAuthUI.GetComponent<PlayerDataUI>().SetText(playerData.name);
+            initialLoad = false;
+        }
     }
     
     public IEnumerator LoadPlayer(){

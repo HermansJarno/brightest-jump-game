@@ -15,15 +15,15 @@ public class PlayerController : MonoBehaviour
     bool facingLeft = false;
     bool dead = false;
 
+    private float maxSpeed = 8f;
+
     GameObject instance;
 
     void Start()
     {
         rig = GetComponent<Rigidbody2D> ();
 
-                    Vector3 wrld = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0.0f, 0.0f));
-
-        Debug.Log(wrld.x);
+        Vector3 wrld = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0.0f, 0.0f));
     }
 
     public void StopMoving(){
@@ -60,7 +60,8 @@ public class PlayerController : MonoBehaviour
 
                 // Moving
                 dirX = Input.acceleration.x * moveSpeedModifier;
-                rig.velocity = new Vector2 (rig.velocity.x + dirX, rig.velocity.y);
+                if(rig.velocity.x <= maxSpeed && rig.velocity.x >= 0) rig.velocity = new Vector2 (rig.velocity.x + dirX, rig.velocity.y);
+                else if(rig.velocity.x >= -(maxSpeed) && rig.velocity.x <= 0) rig.velocity = new Vector2 (rig.velocity.x + dirX, rig.velocity.y);
 
                 //Teleport to other side of screen if needed
                 Vector3 wrld = Camera.main.ScreenToWorldPoint(new Vector3(Screen.width, 0.0f, 0.0f));

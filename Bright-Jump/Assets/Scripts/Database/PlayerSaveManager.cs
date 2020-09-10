@@ -10,9 +10,12 @@ using System.Threading.Tasks;
 
 public class PlayerSaveManager 
 {
-    public async Task<PlayerData?> LoadPlayer(DatabaseReference databaseReference){
+    public PlayerSaveManager(string dbUrl){
+        FirebaseApp.DefaultInstance.SetEditorDatabaseUrl(dbUrl);
+    }
 
-        var dataSnapshot = await databaseReference.Child("users").Database.GetReference(PlayerPrefs.GetString("uid")).GetValueAsync();
+    public async Task<PlayerData?> LoadPlayer(DatabaseReference databaseReference){
+        var dataSnapshot = await databaseReference.Child("users").Child(PlayerPrefs.GetString("uid")).GetValueAsync();
         if(!dataSnapshot.Exists){
             return null;
         }
@@ -21,44 +24,69 @@ public class PlayerSaveManager
     }
 
     public void writeOrUpdateUser(string userId, string name, long score, DatabaseReference dbReference) {
-        User user = new User(name, score);
-        string json = JsonUtility.ToJson(user);
+        PlayerData playerData = new PlayerData(name, score);
+        string json = JsonUtility.ToJson(playerData);
 
         dbReference.Child("users").Child(userId).SetRawJsonValueAsync(json);
+        OverWriteNameInHighScores(userId, name, dbReference);
     }
 
     public void WriteScore(string userId, long score, DatabaseReference dbReference){
         dbReference.Child("users").Child(userId).Child("score").SetValueAsync(score);
     }
 
-    public long GetScore(string userId, DatabaseReference dbReference){
-        long score = 0;
-        dbReference.Child("users").Child(userId).Child("score").GetValueAsync().ContinueWith(task => {
-            if (task.IsFaulted) {
-            // Handle the error...
-            }
-            else if (task.IsCompleted) {
-            DataSnapshot snapshot = task.Result;
-                score = (long)snapshot.Value;
-            }
-        });
-        return score;
+    public void WriteName(string userId, string name, DatabaseReference dbReference){
+        dbReference.Child("users").Child(userId).Child("name").SetValueAsync(name);
+        OverWriteNameInHighScores(userId, name, dbReference);
     }
-    
+
     public async Task<bool> SaveExists(DatabaseReference databaseReference) {
         bool saveExists = false;
-        
 
-        await databaseReference.Child("users").Database.GetReference(PlayerPrefs.GetString("uid")).GetValueAsync().ContinueWith(query => {
+        await databaseReference.Child("users").Child(PlayerPrefs.GetString("uid")).GetValueAsync().ContinueWith(query => {
             saveExists = query.Result.Exists;
-            Debug.Log($"Save exists : {saveExists}");
 
             if(!saveExists){
-                string name = "";
-                if(PlayerPrefs.GetString("playerName") != null) name = PlayerPrefs.GetString("playerName");
-                writeOrUpdateUser(PlayerPrefs.GetString("uid"), name, 0, databaseReference);
+                writeOrUpdateUser(PlayerPrefs.GetString("uid"), "", 0, databaseReference);
             }
         });
         return saveExists;
+    }
+
+    public void OverWriteNameInHighScores(string uid, string name, DatabaseReference dbReference){
+        dbReference.Child("highscores").RunTransaction(mutableData => {
+            List<object> highscores = mutableData.Value as List<object>;
+            List<object> tempHighscores = new List<object>();
+
+            if (highscores == null) {
+                // abort
+                Debug.Log("err");
+            } else {
+                //object highscore = null;
+                foreach (var child in highscores) {
+                    if (!(child is Dictionary<string, object>)) continue;
+                    string childUid = (string)((Dictionary<string, object>)child)["uid"];
+                    if (childUid == uid){
+                        Dictionary<string, object> highscore = (Dictionary<string, object>)child;
+                        highscore["name"] = name;
+                        Debug.Log(highscore["name"]);
+                        Debug.Log(highscore["score"]);
+                        Debug.Log(highscore["uid"]);
+
+
+                        //highscores.Remove(child);
+                        //tempHighscores.Add(highscore);
+                        tempHighscores.Add(highscore);
+                    }else{
+                        tempHighscores.Add(child);
+                    }
+                }
+            }
+
+            mutableData.Value = tempHighscores;
+            return TransactionResult.Success(mutableData);
+            //return TransactionResult.Abort();
+
+        });
     }
 }

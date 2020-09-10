@@ -16,7 +16,11 @@ public class Bullet : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D other) {
         if(other.gameObject.tag == "platform"){
             Destroy(gameObject);
-        }else if(other.gameObject.tag == "bug"){
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D other) {
+        if(other.gameObject.tag == "bug"){
             Destroy(other.gameObject);
             Destroy(gameObject);
         }

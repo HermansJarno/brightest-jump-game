@@ -5,6 +5,11 @@ using System.Collections.Generic;
 [Serializable]
 public struct PlayerData 
 {
-    public int name;
-    public int score;
+    public string name;
+    public long score;
+
+    public PlayerData(string name, long score){
+        this.name = name;
+        this.score = score;
+    }
 }
