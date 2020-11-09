@@ -30,41 +30,48 @@ public class GameManager : MonoBehaviour
     }
 
     private IEnumerator HandleUI(PlayerDataManager playerDataManager, Vector3 EndPosition){
-        yield return new WaitUntil(() => databaseController.highscoresRetrieved);
-
         Text textFieldScore = prefabEndScene.transform.Find("ScoreText").GetComponent<Text>();
         Text textFieldHighscore = prefabEndScene.transform.Find("HighscoreText").GetComponent<Text>();
 
-        bool newHighscore = false;
-        if(databaseController.highscores.Count < databaseController.LeaderBoard.MaxScores){
-            newHighscore = true;
+        long previousHighScore = playerDataManager.Score;
+
+        if(Application.internetReachability == NetworkReachability.NotReachable) {
+            textFieldHighscore.text = "Need internet connection to retrieve highscores.";
+            textFieldScore.text = "Score: " + coinsCollected.ToString();
+            prefabEndScene.transform.position = new Vector3(EndPosition.x, EndPosition.y, 5f);
         }else{
-            foreach(LeaderBoardEntry highscore in databaseController.highscores){
-                if(highscore.score < coinsCollected){
-                    newHighscore = true;
+            yield return new WaitUntil(() => databaseController.highscoresRetrieved);
+
+            bool newHighscore = false;
+            if(databaseController.highscores.Count < databaseController.LeaderBoard.MaxScores){
+                newHighscore = true;
+            }else{
+                foreach(LeaderBoardEntry highscore in databaseController.highscores){
+                    if(highscore.score < coinsCollected){
+                        newHighscore = true;
+                    }
                 }
             }
-        }
 
-        long previousHighScore = playerDataManager.Score;
-        prefabEndScene.transform.position = new Vector3(EndPosition.x, EndPosition.y, 5f);
-        textFieldScore.text = "Score: " + coinsCollected.ToString();
-        if(newHighscore){
-            textFieldScore.text += "\nGlobal new highscore: " + coinsCollected.ToString();
-            if(previousHighScore > coinsCollected){
+            prefabEndScene.transform.position = new Vector3(EndPosition.x, EndPosition.y, 5f);
+            textFieldScore.text = "Score: " + coinsCollected.ToString();
+            if(newHighscore){
+                textFieldScore.text += "\nGlobal new highscore: " + coinsCollected.ToString();
+                if(previousHighScore > coinsCollected){
+                    textFieldScore.text += "\nPersonal highscore: " + previousHighScore.ToString();
+                }
+            } else if (coinsCollected > previousHighScore) {
+                textFieldScore.text += "\nPersonal new highscore: " + coinsCollected.ToString();
+            } else if(previousHighScore > coinsCollected){
                 textFieldScore.text += "\nPersonal highscore: " + previousHighScore.ToString();
             }
-        } else if (coinsCollected > previousHighScore) {
-            textFieldScore.text += "\nPersonal new highscore: " + coinsCollected.ToString();
-        } else if(previousHighScore > coinsCollected){
-            textFieldScore.text += "\nPersonal highscore: " + previousHighScore.ToString();
-        }
 
-        int index = 1;
-        foreach(LeaderBoardEntry highscore in databaseController.highscores){
-            if(databaseController.highscores.IndexOf(highscore) == 0) textFieldHighscore.text = "Highscores:\n";
-            textFieldHighscore.text += "\n" + index + ". " + highscore.name + " - score : " + highscore.score;
-            index++;
+            int index = 1;
+            foreach(LeaderBoardEntry highscore in databaseController.highscores){
+                if(databaseController.highscores.IndexOf(highscore) == 0) textFieldHighscore.text = "Highscores:\n";
+                textFieldHighscore.text += "\n" + index + ". " + highscore.name + " - score : " + highscore.score;
+                index++;
+            }
         }
 
         if(coinsCollected > previousHighScore) playerDataManager.UpdatePlayer(new PlayerData(playerDataManager.PlayerData.name, coinsCollected));

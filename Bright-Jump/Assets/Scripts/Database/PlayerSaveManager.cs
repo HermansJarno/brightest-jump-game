@@ -48,6 +48,7 @@ public class PlayerSaveManager
 
             if(!saveExists){
                 writeOrUpdateUser(PlayerPrefs.GetString("uid"), "", 0, databaseReference);
+                saveExists = true;
             }
         });
         return saveExists;

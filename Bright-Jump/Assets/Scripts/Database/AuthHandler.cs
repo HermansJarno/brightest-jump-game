@@ -17,22 +17,10 @@ public class AuthHandler : MonoBehaviour
     Task<GoogleSignInUser> signInSilent;
 
     public GameObject loginButton;
+    public GameObject authUI;
 
     private void Start(){
-        Firebase.FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task => {
-            var dependencyStatus = task.Result;
-            if (dependencyStatus == Firebase.DependencyStatus.Available) {
-                // Create and hold a reference to your FirebaseApp,
-                // where app is a Firebase.FirebaseApp property of your application class.
-                app = Firebase.FirebaseApp.DefaultInstance;
-
-                // Set a flag here to indicate whether Firebase is ready to use by your app.
-            } else {
-                UnityEngine.Debug.LogError(System.String.Format(
-                "Could not resolve all Firebase dependencies: {0}", dependencyStatus));
-                // Firebase Unity SDK is not safe to use here.
-            }
-        });
+        FixDependencies();
 
         //loginButton.GetComponent<Button>().interactable = false;
         
@@ -78,15 +66,38 @@ public class AuthHandler : MonoBehaviour
         });*/
     }
 
+    void FixDependencies (){
+        Firebase.FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task => {
+            var dependencyStatus = task.Result;
+            if (dependencyStatus == Firebase.DependencyStatus.Available) {
+                // Create and hold a reference to your FirebaseApp,
+                // where app is a Firebase.FirebaseApp property of your application class.
+                app = Firebase.FirebaseApp.DefaultInstance;
+
+                // Set a flag here to indicate whether Firebase is ready to use by your app.
+            } else {
+                UnityEngine.Debug.LogError(System.String.Format(
+                "Could not resolve all Firebase dependencies: {0}", dependencyStatus));
+                // Firebase Unity SDK is not safe to use here.
+            }
+        });
+    }
+
     public void SignIn(){
+        if(app == null){
+            FixDependencies();
+        }
+
         if(Application.isEditor){
             PlayerPrefs.SetString("uid", "9mr9iiRuiXU0WQ0AuY2ZSWD5SU93");
             GameObject.Find("PlayerDataManager").GetComponent<PlayerDataManager>().enabled = true;
             loginButton.SetActive(false);
+            authUI.SetActive(true);
         }else{
             if(Application.internetReachability == NetworkReachability.NotReachable) {
                 loginButton.transform.Find("InternetConnection").gameObject.SetActive(true);
             } else {
+                loginButton.transform.Find("InternetConnection").gameObject.SetActive(false);
                 GoogleSignIn.Configuration = new GoogleSignInConfiguration {
                 RequestIdToken = true,
                 // Copy this value from the google-service.json file.
@@ -123,8 +134,13 @@ public class AuthHandler : MonoBehaviour
                                     // have one; use User.TokenAsync() instead.
                                     string uid = user.UserId;
                                     PlayerPrefs.SetString("uid", uid);
-                                    GameObject.Find("PlayerDataManager").GetComponent<PlayerDataManager>().enabled = true;
+                                    if(!GameObject.Find("PlayerDataManager").GetComponent<PlayerDataManager>().isActiveAndEnabled){
+                                        GameObject.Find("PlayerDataManager").GetComponent<PlayerDataManager>().enabled = true;
+                                    }else{
+                                        GameObject.Find("PlayerDataManager").GetComponent<PlayerDataManager>().Initiate();
+                                    }
                                     loginButton.SetActive(false);
+                                    //authUI.SetActive(true);
                                 } 
                             }
                         });
@@ -137,12 +153,17 @@ public class AuthHandler : MonoBehaviour
     public void SignOut() {
         if(auth != null){
             auth.SignOut();
-            auth = null;
         } 
 
         if(signIn != null){
             GoogleSignIn.DefaultInstance.SignOut();
-            signIn = null;
         } 
+
+        auth = null;
+        signIn = null;
+        app = null;
+
+        loginButton.SetActive(true);
+        authUI.SetActive(false);
     }
 }

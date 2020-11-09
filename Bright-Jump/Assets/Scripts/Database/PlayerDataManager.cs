@@ -40,6 +40,12 @@ public class PlayerDataManager : MonoBehaviour
         DontDestroyOnLoad(this.gameObject);
     }
 
+    public void Initiate(){
+        if(_coroutine == null){
+            _coroutine = StartCoroutine(LoadPlayer());
+        }
+    }
+
     public void UpdatePlayer(PlayerData playerData){
         if(!playerData.Equals(_playerData) && !initialLoad){
             if(playerData.score > _playerData.score && playerData.name != _playerData.name){
@@ -55,8 +61,11 @@ public class PlayerDataManager : MonoBehaviour
 
         _playerData = playerData;
 
-        if(afterAuthUI != null){
+        if(!afterAuthUI.activeSelf){
             afterAuthUI.SetActive(true);
+        }
+        
+        if(afterAuthUI != null){
             if(playerData.name != "") afterAuthUI.GetComponent<PlayerDataUI>().SetText(playerData.name);
             initialLoad = false;
         }

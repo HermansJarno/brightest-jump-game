@@ -1013,6 +1013,51 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 9212127801643169640, guid: b47c8371f9c1efd498e70ac2fe210a29,
+        type: 3}
+      propertyPath: m_Text
+      value: Quit Game
+      objectReference: {fileID: 0}
+    - target: {fileID: 9212127801643169640, guid: b47c8371f9c1efd498e70ac2fe210a29,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9212127801643169640, guid: b47c8371f9c1efd498e70ac2fe210a29,
+        type: 3}
+      propertyPath: m_Color.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9212127801643169640, guid: b47c8371f9c1efd498e70ac2fe210a29,
+        type: 3}
+      propertyPath: m_Color.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4962277971796713345, guid: b47c8371f9c1efd498e70ac2fe210a29,
+        type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Quit
+      objectReference: {fileID: 0}
+    - target: {fileID: 1313384384834509618, guid: b47c8371f9c1efd498e70ac2fe210a29,
+        type: 3}
+      propertyPath: m_Color.r
+      value: 0.2787469
+      objectReference: {fileID: 0}
+    - target: {fileID: 1313384384834509618, guid: b47c8371f9c1efd498e70ac2fe210a29,
+        type: 3}
+      propertyPath: m_Color.g
+      value: 0.6792453
+      objectReference: {fileID: 0}
+    - target: {fileID: 1313384384834509618, guid: b47c8371f9c1efd498e70ac2fe210a29,
+        type: 3}
+      propertyPath: m_Color.b
+      value: 0.30167574
+      objectReference: {fileID: 0}
+    - target: {fileID: 6722082207028103453, guid: b47c8371f9c1efd498e70ac2fe210a29,
+        type: 3}
+      propertyPath: m_Name
+      value: Quit
+      objectReference: {fileID: 0}
     - target: {fileID: 4625167918981301828, guid: b47c8371f9c1efd498e70ac2fe210a29,
         type: 3}
       propertyPath: m_Name
